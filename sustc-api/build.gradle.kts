@@ -2,13 +2,13 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 
-plugins {
-    java
-    alias(libs.plugins.spring.boot)
-    alias(libs.plugins.spring.dependencyManagement)
-    alias(libs.plugins.lombok)
-    alias(libs.plugins.shadow)
-}
+//plugins {
+//    java
+//    alias(libs.plugins.spring.boot)
+//    alias(libs.plugins.spring.dependencyManagement)
+//    alias(libs.plugins.lombok)
+//    alias(libs.plugins.shadow)
+//}
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")

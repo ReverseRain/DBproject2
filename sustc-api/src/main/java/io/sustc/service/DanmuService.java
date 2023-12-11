@@ -18,7 +18,11 @@ public interface DanmuService {
      * @apiNote You may consider the following corner cases:
      * <ul>
      *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
+<<<<<<< HEAD
      *   <li>{@code bv} is invalid (null or empty or not found)</li>
+=======
+     *   <li>cannot find a video corresponding to the {@code bv}</li>
+>>>>>>> upstream/main
      *   <li>{@code content} is invalid (null or empty)</li>
      *   <li>the video is not published or the user has not watched this video</li>
      * </ul>
@@ -39,7 +43,11 @@ public interface DanmuService {
      * @return a list of danmus id, sorted by {@code time}
      * @apiNote You may consider the following corner cases:
      * <ul>
+<<<<<<< HEAD
      *   <li>{@code bv} is invalid (null or empty or not found)</li>
+=======
+     *   <li>cannot find a video corresponding to the {@code bv}</li>
+>>>>>>> upstream/main
      *   <li>
      *     {@code timeStart} and/or {@code timeEnd} is invalid ({@code timeStart} <= {@code timeEnd}
      *     or any of them < 0 or > video duration)
@@ -61,7 +69,11 @@ public interface DanmuService {
      * @apiNote You may consider the following corner cases:
      * <ul>
      *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
+<<<<<<< HEAD
      *   <li>{@code id} is invalid (<= 0 or not found)</li>
+=======
+     *   <li>cannot find a danmu corresponding to the {@code id}</li>
+>>>>>>> upstream/main
      * </ul>
      * If any of the corner case happened, {@code false} shall be returned.
      */

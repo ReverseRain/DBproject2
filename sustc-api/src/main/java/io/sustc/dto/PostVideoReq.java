@@ -6,13 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.sql.DataSource;
+import java.io.Serializable;
 import java.sql.*;
 
+/**
+ * The post video request information class
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostVideoReq {
+public class PostVideoReq implements Serializable {
 
     /**
      * The video's title.
@@ -27,7 +31,7 @@ public class PostVideoReq {
     /**
      * The video's duration (in seconds).
      */
-    private long duration;
+    private float duration;
 
     /**
      * The video's public time.
@@ -40,7 +44,7 @@ public class PostVideoReq {
      * update a video), this field should be ignored.
      */
     private Timestamp publicTime;
-    public  boolean isValid(Timestamp current, DataSource dataSource,AuthInfo auth){
+    public  boolean isValid(Timestamp current, DataSource dataSource, AuthInfo auth){
         if (title==null||title.equals(' ')){
             return false;
         }
