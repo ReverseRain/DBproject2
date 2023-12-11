@@ -15,6 +15,10 @@ build/
 *.jar
 *.log
 .DS_Store
+<<<<<<< HEAD
+=======
+*.ser
+>>>>>>> upstream/main
 
 ### Project Spec Ignored ###
 /sustc-runner/data/postgresql/
