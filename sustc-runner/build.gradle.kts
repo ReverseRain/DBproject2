@@ -1,12 +1,12 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 
-//plugins {
-//    java
-//    alias(libs.plugins.spring.boot)
-//    alias(libs.plugins.spring.dependencyManagement)
-//    alias(libs.plugins.lombok)
-//}
+plugins {
+    java
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependencyManagement)
+    alias(libs.plugins.lombok)
+}
 
 dependencies {
     implementation(

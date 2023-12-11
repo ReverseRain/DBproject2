@@ -27,7 +27,7 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public String postVideo(AuthInfo auth, PostVideoReq req) {
 
-        if (!auth.isValid()){
+        if (!auth.isValid(con)){
             return null;
         }
         Date currentDate = new Date();
@@ -43,7 +43,7 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean deleteVideo(AuthInfo auth, String bv) {
-        if (!auth.isValid()){
+        if (!auth.isValid(con)){
             return false;
         }
         if (bv==null){
@@ -60,10 +60,9 @@ public class VideoServiceImpl implements VideoService {
             stmt=con.prepareStatement(sql2);
             rs=stmt.executeQuery();
             //to judge whether auth is a superuser
-//            if (!rs.next()&&auth.){
-//                return false;
-//            }
-
+            if (!rs.next()&&auth.isSuperUser(con)){
+                return false;
+            }
             String delete="delete * from video where bv=="+bv;
             stmt=con.prepareStatement(delete);
             return stmt.execute();
@@ -76,23 +75,23 @@ public class VideoServiceImpl implements VideoService {
     public boolean updateVideoInfo(AuthInfo auth, String bv, PostVideoReq req) {
         Date data=new Date();
         Timestamp time=new Timestamp(data.getTime());
-        if (!auth.isValid()){
+        if (!auth.isValid(con)){
             return false;
         }
         if (bv==null){
             return false;
         }
         try {
-            String sql1="select * from video where bv=="+bv;
-            String sql2="select * from video where ownerMid=="+auth.getMid()+" and bv =="+bv;
+            String sql1="select * from video where bv ="+bv;
+            String sql2="select * from video where ownerMid ="+auth.getMid()+" and bv =="+bv;
             PreparedStatement stmt=con.prepareStatement(sql1);
             ResultSet rs= stmt.executeQuery();
             if (!rs.next()){
                 return false;
             }else if (req.getDuration()!=rs.getLong("duration")){
                 return false;
-            } else if (!req.getTitle().equals(rs.getString("title"))
-                    || req.getDescription().equals(rs.getString("description"))
+            } else if (req.getTitle().equals(rs.getString("title"))
+                    && req.getDescription().equals(rs.getString("description"))
                     ) {
                 return false;
             }
@@ -104,11 +103,15 @@ public class VideoServiceImpl implements VideoService {
             if (!req.isValid(time,dataSource,auth)){
                 return false;
             }
+            String sqlFinal="update video set title ="+req.getTitle()
+                    +",description ="+req.getDescription()+",duration="+req.getDuration()
+                    +"where bv="+bv;
+            stmt=con.prepareStatement(sqlFinal);
+            return stmt.execute();
             //update bv what?
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return true;
     }
 
     @Override
@@ -119,31 +122,86 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public double getAverageViewRate(String bv) {
-        return 0;
+        if (bv==null){
+            return -1;
+        }
+        String sql1="select * from view where bv ="+bv;
+        try {
+            PreparedStatement stmt = con.prepareStatement(sql1);
+            ResultSet rs= stmt.executeQuery();
+            if (!rs.next()){
+                return -1;
+            }else {
+                int count=0;
+                double ans=0;
+                do{
+                    ans+=rs.getDouble("watchTime");
+                    count++;
+                }while (rs.next());
+                ans=ans/count;
+                String sqlGetDuration="select * from video where bv="+bv;
+                stmt=con.prepareStatement(sqlGetDuration);
+                rs=stmt.executeQuery();
+                rs.next();
+                ans=ans/(rs.getDouble("duration"));
+                return ans;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Set<Integer> getHotspot(String bv) {
+
         return null;
     }
 
     @Override
     public boolean reviewVideo(AuthInfo auth, String bv) {
-        return false;
+        if (!auth.isValid(con)){
+            return false;
+        }
+        if (bv==null){
+            return false;
+        }
+
+        String sql1="select * from video where bv ="+bv;
+        try {
+            PreparedStatement stmt = con.prepareStatement(sql1);
+            ResultSet rs= stmt.executeQuery();
+            if (!rs.next()){
+                return false;
+            }else if (rs.getBoolean("isReview")){
+                return false;
+            }else if (auth.getMid()==rs.getLong("ownerMid")){
+                return false;
+            }else if (!auth.isSuperUser(con)){
+                return false;
+            }
+            String sqlFinal="update video set isReview= true";
+            stmt=con.prepareStatement(sqlFinal);
+            return stmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public boolean coinVideo(AuthInfo auth, String bv) {
+
         return false;
     }
 
     @Override
     public boolean likeVideo(AuthInfo auth, String bv) {
+
         return false;
     }
 
     @Override
     public boolean collectVideo(AuthInfo auth, String bv) {
+
         return false;
     }
 }
