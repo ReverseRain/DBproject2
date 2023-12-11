@@ -30,4 +30,11 @@ public class AuthInfo {
      * OIDC login by WeChat, does not require a password.
      */
     private String wechat;
+    public boolean isValid(){
+        if (mid<=0||(qq==null&&wechat==null)){
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -5,7 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import javax.sql.DataSource;
+import java.sql.*;
 
 @Data
 @Builder
@@ -39,4 +40,28 @@ public class PostVideoReq {
      * update a video), this field should be ignored.
      */
     private Timestamp publicTime;
+    public  boolean isValid(Timestamp current, DataSource dataSource,AuthInfo auth){
+        if (title==null||title.equals(' ')){
+            return false;
+        }
+
+        if (duration<10){
+            return false;
+        }
+        if (publicTime.before(current)){
+            return false;
+        }
+        String sql ="select * from video where auth=="+auth.getMid()+" and title=="+title;
+        try {
+            Connection con=dataSource.getConnection();
+            PreparedStatement stmt=con.prepareStatement(sql);
+            ResultSet rs=stmt.executeQuery();
+            if (rs.next()){
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
 }
