@@ -4,6 +4,9 @@ import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
 import io.sustc.dto.VideoRecord;
 import io.sustc.service.DatabaseService;
+import io.sustc.service.tread.InsertThreadDanmu;
+import io.sustc.service.tread.InsertThreadUser;
+import io.sustc.service.tread.InsertThreadVideo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * It's important to mark your implementation class with {@link Service} annotation.
@@ -22,7 +27,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class DatabaseServiceImpl implements DatabaseService {
+public class databaseServiceImpl implements DatabaseService {
 
     /**
      * Getting a {@link DataSource} instance from the framework, whose connections are managed by HikariCP.
@@ -33,6 +38,15 @@ public class DatabaseServiceImpl implements DatabaseService {
      */
     @Autowired
     private DataSource dataSource;
+    private Connection con;
+
+    {
+        try {
+            con = dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public List<Integer> getGroupMembers() {
@@ -47,8 +61,30 @@ public class DatabaseServiceImpl implements DatabaseService {
             List<UserRecord> userRecords,
             List<VideoRecord> videoRecords
     ) {
-
-
+        //partI to insert user and follow tables
+        ExecutorService executorServiceUser= Executors.newFixedThreadPool(10000);
+        for (int i = 0; i < userRecords.toArray().length; i+=1300) {
+            InsertThreadUser insertThreadUser=new InsertThreadUser(con,
+                    userRecords.subList(i,Math.min(i + 1300, userRecords.size())));
+            executorServiceUser.execute(insertThreadUser);
+        }
+        executorServiceUser.shutdown();
+        //partII to insert videos and so on
+        ExecutorService executorServiceVideo= Executors.newFixedThreadPool(100);
+        for (int i = 0; i < videoRecords.toArray().length; i+=13000) {
+            InsertThreadVideo insertThreadVideo=new InsertThreadVideo(con,
+                    videoRecords.subList(i,Math.min(i + 13000, videoRecords.size())),System.currentTimeMillis());
+            executorServiceVideo.execute(insertThreadVideo);
+        }
+        executorServiceVideo.shutdown();
+        //partIII to insert danmu and so on
+        ExecutorService executorServiceDanmu= Executors.newFixedThreadPool(10000);
+        for (int i = 0; i < danmuRecords.toArray().length; i+=1300) {
+            InsertThreadDanmu insertThreadDanmu=new InsertThreadDanmu(con,
+                    danmuRecords.subList(i,Math.min(i + 1300, danmuRecords.size())),System.currentTimeMillis());
+            executorServiceDanmu.execute(insertThreadDanmu);
+        }
+        executorServiceDanmu.shutdown();
 
         // implement your import logic
         System.out.println(danmuRecords.size());

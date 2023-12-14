@@ -5,19 +5,65 @@ import io.sustc.service.DanmuService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class DanmuServiceImpl implements DanmuService {
     @Autowired
     private DataSource dataSource;
+    private Connection con;
+
+    {
+        try {
+            con = dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public long sendDanmu(AuthInfo auth, String bv, String content, float time) {
-        return 1;
+        if (!auth.isValid(con)){
+            return -1;
+        }
+        if (bv==null||bv.equals("")){
+            return -1;
+        }
+        if (content==null||content.equals("")){
+            return -1;
+        }
+
+        try {
+            String sql="select * from view where bv="+bv+"and mid="+auth.getMid();
+            String sql2="select * from videos where bv="+bv;
+            PreparedStatement stmt= con.prepareStatement(sql);
+            ResultSet rs=stmt.executeQuery();
+            if (!rs.next()){
+                return -1;
+            }
+            stmt=con.prepareStatement(sql2);
+            rs=stmt.executeQuery();
+            Date data = new Date();
+            Timestamp current = new Timestamp(data.getTime());
+            if (!rs.next()){
+                return -1;
+            }else if (!rs.getTimestamp("publicTime").before(current)){
+                return -1;
+            }else {
+                String sqlFinal="insert into danmu(bv,mid,time,content,postTime) " +
+                        "values("+bv+","+auth.getMid()+","+time+","+content+","+current+")";
+                stmt= con.prepareStatement(sqlFinal);
+                stmt.execute();
+                sql2="select count(*) from danmu";
+                stmt= con.prepareStatement(sql2);
+                rs=stmt.executeQuery();
+                rs.next();
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -49,7 +95,7 @@ public class DanmuServiceImpl implements DanmuService {
 
     @Override
     public boolean likeDanmu(AuthInfo auth, long id) {
-
+//        if (auth.)
         return false;
     }
 }

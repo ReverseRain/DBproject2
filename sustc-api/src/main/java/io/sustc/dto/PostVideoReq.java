@@ -60,7 +60,11 @@ public class PostVideoReq implements Serializable {
             Connection con=dataSource.getConnection();
             PreparedStatement stmt=con.prepareStatement(sql);
             ResultSet rs=stmt.executeQuery();
-            if (rs.next()){
+            int count=0;
+            while (rs.next()){
+                count++;
+            }
+            if (count>=2){
                 return false;
             }
         } catch (SQLException e) {
