@@ -3,13 +3,14 @@ package io.sustc.service.impl;
 import io.sustc.dto.AuthInfo;
 import io.sustc.service.DanmuService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+@Service
 public class DanmuServiceImpl implements DanmuService {
     @Autowired
     private DataSource dataSource;
@@ -95,8 +96,34 @@ public class DanmuServiceImpl implements DanmuService {
 
     @Override
     public boolean likeDanmu(AuthInfo auth, long id) {
-//        if (auth.)
-        return false;
+        if(!auth.isValid(con)){
+            return false;
+        }
+        if(id<=0){
+            return false;
+        }
+        String sql="select * from danmu where id="+id;
+        try {
+            PreparedStatement stmt=con.prepareStatement(sql);
+            ResultSet rs=stmt.executeQuery();
+            if (!rs.next()){
+                return false;
+            }else {
+                sql="select * from danmuLikeBy where danmuID="+id+"and likeMid="+auth.getMid();
+                stmt=con.prepareStatement(sql);
+                rs=stmt.executeQuery();
+                if (rs.next()){
+                    sql="delete * from danmuLikeBy where danmuID="+id+" and likeMid="+auth.getMid();
+                }else {
+                    sql="insert into danmuLikeBy" +
+                            "(danmuID,likeMid) values("+id+","+auth.getMid()+")";
+                }
+                stmt=con.prepareStatement(sql);
+                return stmt.execute();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
